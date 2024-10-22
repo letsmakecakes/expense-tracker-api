@@ -17,7 +17,7 @@ type expenseService struct {
 	repo repository.ExpenseRepository
 }
 
-func NewExpenseRepository(repo repository.ExpenseRepository) ExpenseService {
+func NewExpenseService(repo repository.ExpenseRepository) ExpenseService {
 	return &expenseService{repo}
 }
 
