@@ -29,7 +29,7 @@ func (r *expenseRepository) Add(expense *models.Expense) error {
 }
 
 func (r *expenseRepository) GetByID(id int) (*models.Expense, error) {
-	query := `SELECT id, date, description, amount, created_at, updated_at FROM exepense WHERE id = $1`
+	query := `SELECT id, date, description, amount, created_at, updated_at FROM expense WHERE id = $1`
 	row := r.db.QueryRow(query, id)
 
 	var expense models.Expense
