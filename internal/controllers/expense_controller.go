@@ -58,3 +58,14 @@ func (c *ExpenseController) GetExpense(ctx *gin.Context) {
 
 	utils.RespondWithJSON(ctx, http.StatusOK, expense)
 }
+
+func (c *ExpenseController) LoadAllExpenses(ctx *gin.Context) {
+	expenses, err := c.Service.LoadAllExpenses()
+	if err != nil {
+		log.Errorf("error getting expenses: %v", err)
+		utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to retrieve expenses")
+		return
+	}
+
+	utils.RespondWithJSON(ctx, http.StatusOK, expenses)
+}
