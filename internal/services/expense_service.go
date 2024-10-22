@@ -32,3 +32,11 @@ func (s *expenseService) GetExpenseByID(id int) (*models.Expense, error) {
 func (s *expenseService) LoadAllExpenses() ([]*models.Expense, error) {
 	return s.repo.LoadAll()
 }
+
+func (s *expenseService) UpdateExpense(expense *models.Expense) error {
+	return s.repo.Update(expense)
+}
+
+func (s *expenseService) DeleteExpense(id int) error {
+	return s.repo.Delete(id)
+}
