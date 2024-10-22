@@ -8,7 +8,7 @@ import (
 type ExpenseRepository interface {
 	Add(expense *models.Expense) error
 	GetByID(id int) (*models.Expense, error)
-	Load() ([]*models.Expense, error)
+	LoadAll() ([]*models.Expense, error)
 	Update(expense *models.Expense) error
 	Delete(id int) error
 }
@@ -39,4 +39,27 @@ func (r *expenseRepository) GetByID(id int) (*models.Expense, error) {
 	}
 
 	return &expense, nil
+}
+
+func (r *expenseRepository) LoadAll() ([]*models.Expense, error) {
+	var expenses []*models.Expense
+	var rows *sql.Rows
+	var err error
+
+	query := `SELECT id, date, description, amount, created_at, updated_at FROM expense`
+	rows, err = r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var expense models.Expense
+		if err := rows.Scan(&expense.ID, &expense.Date, &expense.Description, &expense.Amount, &expense.CreatedAt, &expense.UpdatedAt); err != nil {
+			return nil, err
+		}
+		expenses = append(expenses, &expense)
+	}
+
+	return expenses, nil
 }
