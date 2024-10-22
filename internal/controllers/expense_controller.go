@@ -112,3 +112,25 @@ func (c *ExpenseController) UpdateExpense(ctx *gin.Context) {
 
 	utils.RespondWithJSON(ctx, http.StatusOK, updatedExpense)
 }
+
+func (c *ExpenseController) DeleteExpense(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		log.Errorf("error converting paramater to integer: %v", err)
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid expense ID")
+		return
+	}
+
+	if err := c.Service.DeleteExpense(id); err != nil {
+		log.Errorf("error deleting blog: %v", err)
+		if err == sql.ErrNoRows {
+			utils.RespondWithError(ctx, http.StatusNotFound, "Expense not found")
+		} else {
+			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to delete blog")
+		}
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
