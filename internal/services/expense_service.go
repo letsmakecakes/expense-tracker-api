@@ -24,3 +24,11 @@ func NewExpenseRepository(repo repository.ExpenseRepository) ExpenseService {
 func (s *expenseService) AddExpense(expense *models.Expense) error {
 	return s.repo.Add(expense)
 }
+
+func (s *expenseService) GetExpenseByID(id int) (*models.Expense, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *expenseService) LoadAllExpenses() ([]*models.Expense, error) {
+	return s.repo.LoadAll()
+}
