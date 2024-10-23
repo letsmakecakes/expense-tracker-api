@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -36,4 +37,28 @@ func GenerateToken(username string, jwtKey []byte) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+// ValidateToken validates the incoming JWT and returns the claims if valid
+func ValidateToken(tokenString string, jwtKey string) (*Claims, error) {
+	claims := &Claims{}
+
+	// Parse and validate the token
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, fmt.Errorf("invalid signature")
+		}
+		return nil, fmt.Errorf("could not parse token: %v", err)
+	}
+
+	// Check if the token is valid
+	if !token.Valid {
+		return nil, fmt.Errorf("token is invalid")
+	}
+
+	return claims, nil
 }
