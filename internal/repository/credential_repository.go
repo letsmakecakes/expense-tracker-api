@@ -44,3 +44,22 @@ func (r *credentialRepository) Update(credential *models.Credentials) error {
 	err := r.db.QueryRow(query, credential.Username, credential.Password, credential.ID).Scan(&credential.UpdatedAt)
 	return err
 }
+
+func (r *credentialRepository) Delete(id int) error {
+	query := `DELETE FROM user WHERE id = $1`
+	res, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
