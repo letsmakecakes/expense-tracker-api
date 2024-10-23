@@ -26,3 +26,16 @@ func (r *credentialRepository) Create(credential *models.Credentials) error {
 	err := r.db.QueryRow(query, credential.Username, credential.Password, credential.CreatedAt, credential.UpdatedAt).Scan(&credential.ID, &credential.CreatedAt, &credential.UpdatedAt)
 	return err
 }
+
+func (r *credentialRepository) GetByID(id int) (*models.Credentials, error) {
+	query := `SELECT id, username, password, created_at, updated_at FROM user WHERE id = $1`
+	row := r.db.QueryRow(query, id)
+
+	var credential models.Credentials
+	err := row.Scan(&credential.ID, &credential.Username, &credential.Password, &credential.CreatedAt, &credential.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &credential, nil
+}
