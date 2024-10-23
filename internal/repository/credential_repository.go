@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"expensetrackerapi/pkg/models"
-	"strings"
 )
 
 type CredentialRepository interface {
@@ -38,4 +37,10 @@ func (r *credentialRepository) GetByID(id int) (*models.Credentials, error) {
 	}
 
 	return &credential, nil
+}
+
+func (r *credentialRepository) Update(credential *models.Credentials) error {
+	query := `UPDATE user SET username = $1, password = $2, updated_at = NOW() WHERE id = $3 RETURNING updated_at`
+	err := r.db.QueryRow(query, credential.Username, credential.Password, credential.ID).Scan(&credential.UpdatedAt)
+	return err
 }
