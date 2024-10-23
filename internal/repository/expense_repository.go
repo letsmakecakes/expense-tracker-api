@@ -73,7 +73,7 @@ func (r *expenseRepository) Update(expense *models.Expense) error {
 func (r *expenseRepository) Delete(id int) error {
 	query := `DELETE FROM expense WHERE id = $1`
 	res, err := r.db.Exec(query, id)
-	if res != nil {
+	if err != nil {
 		return err
 	}
 
@@ -83,9 +83,7 @@ func (r *expenseRepository) Delete(id int) error {
 	}
 
 	if rowsAffected == 0 {
-		if err == sql.ErrNoRows {
-			return sql.ErrNoRows
-		}
+		return sql.ErrNoRows
 	}
 
 	return nil
