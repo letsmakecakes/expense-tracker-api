@@ -19,3 +19,14 @@ func ValidateExpense(expense *models.Expense) error {
 
 	return nil
 }
+
+func ValidateCredential(credential *models.Credential) error {
+	if strings.TrimSpace(credential.Username) == "" {
+		return errors.New("Username is required")
+	}
+	if strings.TrimSpace(credential.Password) == "" {
+		return errors.New("Password is required")
+	}
+
+	return nil
+}
