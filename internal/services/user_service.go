@@ -23,3 +23,11 @@ func NewCredentialService(repo repository.CredentialRepository) CredentialServic
 func (s *credentialService) CreateCredential(credential *models.Credentials) error {
 	return s.repo.Create(credential)
 }
+
+func (s *credentialService) GetCredentialByID(id int) (*models.Credentials, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *credentialService) UpdateCredential(credential *models.Credentials) error {
+	return s.repo.Update(credential)
+}
