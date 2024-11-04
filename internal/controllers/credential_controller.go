@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"database/sql"
+	"errors"
 	"expensetrackerapi/internal/services"
 	"expensetrackerapi/pkg/jwt"
 	"expensetrackerapi/pkg/models"
 	"expensetrackerapi/pkg/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -20,7 +22,7 @@ func NewCredentialController(service services.CredentialService) *CredentialCont
 	return &CredentialController{service}
 }
 
-// CreateCredential handles POST /signup
+// CreateCredential handles POST /user/signup
 func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	var credential models.Credential
 	if err := ctx.ShouldBindJSON(&credential); err != nil {
@@ -70,7 +72,7 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	utils.RespondWithJSON(ctx, http.StatusCreated, credential)
 }
 
-// GetCredential handles GET /login
+// GetCredential handles GET /user/login
 func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	var credential models.Credential
 	if err := ctx.ShouldBindJSON(&credential); err != nil {
@@ -107,4 +109,63 @@ func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	ctx.SetCookie("token", token, 43200, "/", "localhost", false, true)
 
 	utils.RespondWithJSON(ctx, http.StatusOK, "Logged in successfully")
+}
+
+// UpdateCredential handles PUT /user/:id
+func (c *CredentialController) UpdateCredential(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		log.Errorf("error updating credential: %v", err)
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid post ID")
+		return
+	}
+
+	var credential models.Credential
+	if err := ctx.ShouldBindJSON(&credential); err != nil {
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Validate the credential
+	if err := utils.ValidateCredential(&credential); err != nil {
+		log.Errorf("error validating credential: %v", err)
+		utils.RespondWithError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	credential.ID = id
+	if err := c.Service.UpdateCredential(&credential); err != nil {
+		log.Errorf("error updating credential: %v", err)
+		if err == sql.ErrNoRows {
+			utils.RespondWithError(ctx, http.StatusNotFound, "Credential not found")
+		} else {
+			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to update credential")
+		}
+		return
+	}
+
+}
+
+// DeleteCredential handles DELETE /user/:id
+func (c *CredentialController) DeleteCredential(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		log.Errorf("error converting parameter to integer: %v", err)
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid blog ID")
+		return
+	}
+
+	if err := c.Service.DeleteCredential(id); err != nil {
+		log.Errorf("error deleting credential: %v", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			utils.RespondWithError(ctx, http.StatusNotFound, "Credential not found")
+		} else {
+			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to delete credential")
+		}
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
