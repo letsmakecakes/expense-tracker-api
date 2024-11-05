@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Middleware to authenticate JWT tokens
+// AuthMiddleware Middleware to authenticate JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Retrieve the JWT token from the cookie
