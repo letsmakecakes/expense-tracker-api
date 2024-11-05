@@ -14,9 +14,14 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 	expenseService := services.NewExpenseService(expenseRepo)
 	expenseController := controllers.NewExpenseController(expenseService)
 
-	api := router.Group("/api")
+	credentialRepo := repository.NewCredentialRepository(db)
+	credentialService := services.NewCredentialService(credentialRepo)
+	credentialController := controllers.NewCredentialController(credentialService)
+
+	expenseAPI := router.Group("/expenseAPI")
+
 	{
-		expense := api.Group("/expense")
+		expense := expenseAPI.Group("/expense")
 		{
 			expense.POST("/", expenseController.AddExpense)
 			expense.GET("/", expenseController.LoadAllExpenses)
@@ -25,4 +30,7 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 			expense.DELETE("/:id", expenseController.DeleteExpense)
 		}
 	}
+
+	router.POST("/signup", credentialController.CreateCredential)
+	router.POST("/login", credentialController.GetCredential)
 }
