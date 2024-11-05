@@ -22,7 +22,7 @@ func NewExpenseRepository(db *sql.DB) ExpenseRepository {
 }
 
 func (r *expenseRepository) Add(expense *models.Expense) error {
-	query := `INSERT INTO blogs (date, description, amount, created_at, updated_at)
+	query := `INSERT INTO expense (date, description, amount, created_at, updated_at)
 				VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, created_at, updated_at`
 	err := r.db.QueryRow(query, expense.Date, expense.Description, expense.Amount).Scan(&expense.ID, &expense.CreatedAt, &expense.UpdatedAt)
 	return err
@@ -65,7 +65,7 @@ func (r *expenseRepository) LoadAll() ([]*models.Expense, error) {
 }
 
 func (r *expenseRepository) Update(expense *models.Expense) error {
-	query := `UPDATE expense SET date = $1, description = $2, amount = $3, updated_at = NOW() WHERE id $4 RETURNING updated_at`
+	query := `UPDATE expense SET date = $1, description = $2, amount = $3, updated_at = NOW() WHERE id = $4 RETURNING updated_at`
 	err := r.db.QueryRow(query, expense.Date, expense.Description, expense.Amount, expense.ID).Scan(&expense.UpdatedAt)
 	return err
 }
