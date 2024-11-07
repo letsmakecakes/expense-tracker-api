@@ -11,6 +11,12 @@ import (
 // AuthMiddleware Middleware to authenticate JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Skip authentication for POST /signup
+		if c.Request.Method == http.MethodPost && c.FullPath() == "/signup" {
+			c.Next()
+			return
+		}
+
 		// Retrieve the JWT token from the cookie
 		tokenString, err := c.Cookie("token")
 		if err != nil {
