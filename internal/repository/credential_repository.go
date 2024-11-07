@@ -21,13 +21,14 @@ func NewCredentialRepository(db *sql.DB) CredentialRepository {
 }
 
 func (r *credentialRepository) Create(credential *models.Credential) error {
-	query := `INSERT INTO user (username, password, created_at, updated_at) VALUES ($1, $2, NOW(), NOW()) RETURNING id, created_at, updated_at`
-	err := r.db.QueryRow(query, credential.Username, credential.Password, credential.CreatedAt, credential.UpdatedAt).Scan(&credential.ID, &credential.CreatedAt, &credential.UpdatedAt)
+	query := `INSERT INTO login (username, password, created_at, updated_at) 
+				VALUES ($1, $2, NOW(), NOW()) RETURNING id, created_at, updated_at`
+	err := r.db.QueryRow(query, credential.Username, credential.Password).Scan(&credential.ID, &credential.CreatedAt, &credential.UpdatedAt)
 	return err
 }
 
 func (r *credentialRepository) GetByID(id int) (*models.Credential, error) {
-	query := `SELECT id, username, password, created_at, updated_at FROM user WHERE id = $1`
+	query := `SELECT id, username, password, created_at, updated_at FROM login WHERE id = $1`
 	row := r.db.QueryRow(query, id)
 
 	var credential models.Credential
@@ -40,13 +41,13 @@ func (r *credentialRepository) GetByID(id int) (*models.Credential, error) {
 }
 
 func (r *credentialRepository) Update(credential *models.Credential) error {
-	query := `UPDATE user SET username = $1, password = $2, updated_at = NOW() WHERE id = $3 RETURNING updated_at`
+	query := `UPDATE login SET username = $1, password = $2, updated_at = NOW() WHERE id = $3 RETURNING updated_at`
 	err := r.db.QueryRow(query, credential.Username, credential.Password, credential.ID).Scan(&credential.UpdatedAt)
 	return err
 }
 
 func (r *credentialRepository) Delete(id int) error {
-	query := `DELETE FROM user WHERE id = $1`
+	query := `DELETE FROM login WHERE id = $1`
 	res, err := r.db.Exec(query, id)
 	if err != nil {
 		return err
