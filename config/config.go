@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"os"
+	"fmt"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -12,14 +12,27 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	// Load .env file
-	if err := godotenv.Load(".env"); err != nil {
-		return nil, err
+	// Set the path to look for the .env file
+	viper.AddConfigPath("../../")
+	viper.AddConfigPath("../")
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+
+	// Read the config file
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("error loading config file: %w", err)
 	}
 
+	// Set default values (if needed)
+	viper.SetDefault("PORT", "8080")
+	viper.SetDefault("ENVIRONMENT", "development")
+
+	// Bind environment variables to Viper
+	viper.AutomaticEnv()
+
 	return &Config{
-		Port:        os.Getenv("PORT"),
-		DatabaseURL: os.Getenv("DATABASE_URL"),
-		Environment: os.Getenv("ENVIRONMENT"),
+		Port:        viper.GetString("PORT"),
+		DatabaseURL: viper.GetString("DATABASE_URL"),
+		Environment: viper.GetString("ENVIRONMENT"),
 	}, nil
 }
