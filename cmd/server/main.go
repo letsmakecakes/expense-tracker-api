@@ -29,10 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not connect to the database: %v", err)
 	}
-	err = database.Close()
-	if err != nil {
-		log.Fatalf("Could not close database: %v", err)
-	}
+	defer database.Close()
 
 	log.Info("Database initialized")
 
