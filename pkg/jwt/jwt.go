@@ -3,20 +3,19 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// Define your JWT claims
+// Claims Define your JWT claims
 type Claims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
 
 // Secret key (loaded from environment or config)
-var jwtKey = []byte(os.Getenv("JWT_SECRET"))
+var jwtKey = []byte("your_secret_key")
 
 // GenerateToken generates a JWT for a valid user
 func GenerateToken(username string) (string, error) {
