@@ -39,29 +39,29 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	}
 
 	// Check if the user already exists
-	existingCred, err := c.Service.GetCredentialByID(credential.ID)
-	if err != nil {
-		log.Errorf("error getting credential: %v", err)
-		if err != sql.ErrNoRows {
-			utils.RespondWithError(ctx, http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
+	//existingCred, err := c.Service.GetCredentialByID(credential.ID)
+	//if err != nil {
+	//	log.Errorf("error getting credential: %v", err)
+	//	if !errors.Is(err, sql.ErrNoRows) {
+	//		utils.RespondWithError(ctx, http.StatusInternalServerError, err.Error())
+	//		return
+	//	}
+	//}
+	//
+	//if existingCred != nil {
+	//	log.Errorf("credential already exists")
+	//	utils.RespondWithError(ctx, http.StatusBadRequest, "Credential already exists")
+	//	return
+	//}
 
-	if existingCred != nil {
-		log.Errorf("credential already exists")
-		utils.RespondWithError(ctx, http.StatusBadRequest, "Credential already exists")
-		return
-	}
-
-	hashed_password, err := utils.HashPassword(credential.Password)
+	hashedPassword, err := utils.HashPassword(credential.Password)
 	if err != nil {
 		log.Errorf("error hashing password: %v", err)
 		utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
 
-	credential.Password = hashed_password
+	credential.Password = hashedPassword
 
 	if err := c.Service.CreateCredential(&credential); err != nil {
 		log.Errorf("error creating credential: %v", err)
@@ -84,8 +84,8 @@ func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	existingCredential, err := c.Service.GetCredentialByID(credential.ID)
 	if err != nil {
 		log.Errorf("error getting credential: %v", err)
-		if err == sql.ErrNoRows {
-			utils.RespondWithError(ctx, http.StatusNotFound, "Credentail not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			utils.RespondWithError(ctx, http.StatusNotFound, "Credential not found")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to retrieve credential")
 		}
@@ -106,7 +106,10 @@ func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	}
 
 	// Set the JWT as an HTTP-only cookie
-	ctx.SetCookie("token", token, 43200, "/", "localhost", false, true)
+	// ctx.SetCookie("token", token, 43200, "/", "localhost", false, true)
+
+	// Set the JWT as response header
+	ctx.Set("Authorization", "Bearer "+token)
 
 	utils.RespondWithJSON(ctx, http.StatusOK, "Logged in successfully")
 }
@@ -137,7 +140,7 @@ func (c *CredentialController) UpdateCredential(ctx *gin.Context) {
 	credential.ID = id
 	if err := c.Service.UpdateCredential(&credential); err != nil {
 		log.Errorf("error updating credential: %v", err)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			utils.RespondWithError(ctx, http.StatusNotFound, "Credential not found")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to update credential")
