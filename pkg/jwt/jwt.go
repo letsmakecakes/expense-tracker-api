@@ -19,8 +19,9 @@ var jwtKey = []byte("your_secret_key")
 
 // GenerateToken generates a JWT for a valid user
 func GenerateToken(username string) (string, error) {
-	expirationTime := time.Now().Add(12 * time.Hour) // Token valid for 12 hours
+	expirationTime := time.Now().Add(12 * time.Hour) // Set token expiration time to 1 hour
 
+	// Create the JWT claims, which includes the username and expiry time
 	claims := &Claims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -46,6 +47,10 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 	// Parse and validate the token
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		// Make sure that the signing method is HMAC
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return jwtKey, nil
 	})
 
