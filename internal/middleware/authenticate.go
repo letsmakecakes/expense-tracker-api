@@ -10,34 +10,27 @@ import (
 // AuthMiddleware Middleware to authenticate JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Skip authentication for POST /signup
-		if c.Request.Method == http.MethodPost && c.FullPath() == "/signup" {
+		// Define routes to skip authentication
+		skippedRoutes := map[string]string{
+			"/signup": http.MethodPost,
+			"/login":  http.MethodPost,
+		}
+
+		// Skip authentication for specific routes
+		if method, exists := skippedRoutes[c.FullPath()]; exists && c.Request.Method == method {
 			c.Next()
 			return
 		}
 
-		// Skip authentication for POST /login
-		if c.Request.Method == http.MethodPost && c.FullPath() == "/login" {
-			c.Next()
-			return
-		}
-
+		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" || len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
-			utils.RespondWithError(c, http.StatusUnauthorized, "Authorization header is required")
+		if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
+			utils.RespondWithError(c, http.StatusUnauthorized, "Authorization header is required and must contain a Bearer token")
 			c.Abort()
 			return
 		}
 
-		// Retrieve the JWT token from the cookie
-		//tokenString, err := c.Cookie("token")
-		//if err != nil {
-		//	utils.RespondWithError(c, http.StatusUnauthorized, "Authorization token not found")
-		//	c.Abort()
-		//	return
-		//}
-
-		// Retrieve the token from header
+		// Extract the token from the header
 		tokenString := authHeader[7:]
 
 		// Parse and validate the token
@@ -48,8 +41,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Store user info in context for later use
+		// Store user info in context for use in subsequent handlers
 		c.Set("username", claims.Username)
+
+		// Continue to the next handler
 		c.Next()
 	}
 }
