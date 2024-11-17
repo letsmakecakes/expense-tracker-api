@@ -7,7 +7,7 @@ import (
 
 type CredentialService interface {
 	CreateCredential(credential *models.Credential) error
-	GetCredentialByID(id int) (*models.Credential, error)
+	GetCredentialByUsername(username string) (*models.Credential, error)
 	UpdateCredential(credential *models.Credential) error
 	DeleteCredential(id int) error
 }
@@ -24,8 +24,8 @@ func (s *credentialService) CreateCredential(credential *models.Credential) erro
 	return s.repo.Create(credential)
 }
 
-func (s *credentialService) GetCredentialByID(id int) (*models.Credential, error) {
-	return s.repo.GetByID(id)
+func (s *credentialService) GetCredentialByUsername(username string) (*models.Credential, error) {
+	return s.repo.GetByUsername(username)
 }
 
 func (s *credentialService) UpdateCredential(credential *models.Credential) error {

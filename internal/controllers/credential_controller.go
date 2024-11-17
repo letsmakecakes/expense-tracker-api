@@ -39,7 +39,7 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	}
 
 	// Check if the user already exists
-	//existingCred, err := c.Service.GetCredentialByID(credential.ID)
+	//existingCred, err := c.Service.GetCredentialByUsername(credential.ID)
 	//if err != nil {
 	//	log.Errorf("error getting credential: %v", err)
 	//	if !errors.Is(err, sql.ErrNoRows) {
@@ -75,43 +75,66 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 // GetCredential handles GET /user/login
 func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	var credential models.Credential
+
+	// Parse the request body into the Credential struct
 	if err := ctx.ShouldBindJSON(&credential); err != nil {
 		log.Errorf("error binding JSON: %v", err)
+
+		// Optional: Log raw data if binding fails
+		if rawData, errRaw := ctx.GetRawData(); errRaw == nil {
+			log.Errorf("received raw data: %v", string(rawData))
+		} else {
+			log.Errorf("error retrieving raw data: %v", errRaw)
+		}
+
 		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
-	existingCredential, err := c.Service.GetCredentialByID(credential.ID)
+	// Validate input fields (ensure non-empty values)
+	if credential.Username == "" || credential.Password == "" {
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Username and password are required")
+		return
+	}
+
+	// Retrieve credential from the database using the service
+	existingCredential, err := c.Service.GetCredentialByUsername(credential.Username)
 	if err != nil {
 		log.Errorf("error getting credential: %v", err)
 		if errors.Is(err, sql.ErrNoRows) {
-			utils.RespondWithError(ctx, http.StatusNotFound, "Credential not found")
+			utils.RespondWithError(ctx, http.StatusUnauthorized, "Invalid username or password")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to retrieve credential")
 		}
 		return
 	}
 
+	// Verify the password
 	match := utils.CheckPasswordHash(credential.Password, existingCredential.Password)
 	if !match {
-		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid credentials")
+		utils.RespondWithError(ctx, http.StatusUnauthorized, "Invalid username or password")
 		return
 	}
 
-	// Generate a JWT
-	token, err := jwt.GenerateToken(credential.Username)
+	// Generate a JWT token
+	token, err := jwt.GenerateToken(existingCredential.Username)
 	if err != nil {
+		log.Errorf("error generating JWT token: %v", err)
 		utils.RespondWithError(ctx, http.StatusInternalServerError, "Could not generate token")
 		return
 	}
 
-	// Set the JWT as an HTTP-only cookie
-	// ctx.SetCookie("token", token, 43200, "/", "localhost", false, true)
+	// Option 1: Set the JWT as an HTTP-only cookie (if you want cookie-based authentication)
+	ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
 
-	// Set the JWT as response header
-	ctx.Set("Authorization", "Bearer "+token)
+	// Option 2: Set the JWT as a response header (if token-based auth is preferred)
+	ctx.Header("Authorization", "Bearer "+token)
 
-	utils.RespondWithJSON(ctx, http.StatusOK, "Logged in successfully")
+	// Respond with a success message
+	utils.RespondWithJSON(ctx, http.StatusOK, gin.H{
+		"message": "Logged in successfully",
+		"token":   token, // Include token in the response if needed
+	})
 }
 
 // UpdateCredential handles PUT /user/:id

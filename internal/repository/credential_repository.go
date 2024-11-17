@@ -7,7 +7,7 @@ import (
 
 type CredentialRepository interface {
 	Create(credential *models.Credential) error
-	GetByID(id int) (*models.Credential, error)
+	GetByUsername(username string) (*models.Credential, error)
 	Update(credential *models.Credential) error
 	Delete(id int) error
 }
@@ -27,9 +27,9 @@ func (r *credentialRepository) Create(credential *models.Credential) error {
 	return err
 }
 
-func (r *credentialRepository) GetByID(id int) (*models.Credential, error) {
-	query := `SELECT id, username, password, created_at, updated_at FROM login WHERE id = $1`
-	row := r.db.QueryRow(query, id)
+func (r *credentialRepository) GetByUsername(username string) (*models.Credential, error) {
+	query := `SELECT id, username, password, created_at, updated_at FROM login WHERE username = $1`
+	row := r.db.QueryRow(query, username)
 
 	var credential models.Credential
 	err := row.Scan(&credential.ID, &credential.Username, &credential.Password, &credential.CreatedAt, &credential.UpdatedAt)
