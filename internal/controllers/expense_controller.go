@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"errors"
 	"expensetrackerapi/internal/services"
 	"expensetrackerapi/pkg/models"
 	"expensetrackerapi/pkg/utils"
@@ -41,14 +42,14 @@ func (c *ExpenseController) GetExpense(ctx *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		log.Errorf("error converting paramater to number: %v", err)
-		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid exepnse ID")
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid expense ID")
 		return
 	}
 
 	expense, err := c.Service.GetExpenseByID(id)
 	if err != nil {
 		log.Errorf("error getting blog: %v", err)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			utils.RespondWithError(ctx, http.StatusNotFound, "Expense not found")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to retrieve expense")
@@ -95,7 +96,7 @@ func (c *ExpenseController) UpdateExpense(ctx *gin.Context) {
 	expense.ID = id
 	if err := c.Service.UpdateExpense(&expense); err != nil {
 		log.Errorf("error updating expense: %v", err)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			utils.RespondWithError(ctx, http.StatusNotFound, "Expense not found")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to update expense")
@@ -124,7 +125,7 @@ func (c *ExpenseController) DeleteExpense(ctx *gin.Context) {
 
 	if err := c.Service.DeleteExpense(id); err != nil {
 		log.Errorf("error deleting blog: %v", err)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			utils.RespondWithError(ctx, http.StatusNotFound, "Expense not found")
 		} else {
 			utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to delete blog")
