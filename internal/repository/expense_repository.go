@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"expensetrackerapi/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 type ExpenseRepository interface {
@@ -22,18 +23,18 @@ func NewExpenseRepository(db *sql.DB) ExpenseRepository {
 }
 
 func (r *expenseRepository) Add(expense *models.Expense) error {
-	query := `INSERT INTO expense (date, description, amount, created_at, updated_at)
-				VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, created_at, updated_at`
-	err := r.db.QueryRow(query, expense.Date, expense.Description, expense.Amount).Scan(&expense.ID, &expense.CreatedAt, &expense.UpdatedAt)
+	query := `INSERT INTO expense (date, category, description, amount, created_at, updated_at)
+				VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, created_at, updated_at`
+	err := r.db.QueryRow(query, expense.Date, expense.Category, expense.Description, expense.Amount).Scan(&expense.ID, &expense.CreatedAt, &expense.UpdatedAt)
 	return err
 }
 
 func (r *expenseRepository) GetByID(id int) (*models.Expense, error) {
-	query := `SELECT id, date, description, amount, created_at, updated_at FROM expense WHERE id = $1`
+	query := `SELECT id, date, category, description, amount, created_at, updated_at FROM expense WHERE id = $1`
 	row := r.db.QueryRow(query, id)
 
 	var expense models.Expense
-	err := row.Scan(&expense.ID, &expense.Date, &expense.Description, &expense.Amount, &expense.CreatedAt, &expense.UpdatedAt)
+	err := row.Scan(&expense.ID, &expense.Date, &expense.Category, &expense.Description, &expense.Amount, &expense.CreatedAt, &expense.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -46,16 +47,21 @@ func (r *expenseRepository) LoadAll() ([]*models.Expense, error) {
 	var rows *sql.Rows
 	var err error
 
-	query := `SELECT id, date, description, amount, created_at, updated_at FROM expense`
+	query := `SELECT id, date, category, description, amount, created_at, updated_at FROM expense`
 	rows, err = r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Errorf("error closing cursor: %v", err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var expense models.Expense
-		if err := rows.Scan(&expense.ID, &expense.Date, &expense.Description, &expense.Amount, &expense.CreatedAt, &expense.UpdatedAt); err != nil {
+		if err := rows.Scan(&expense.ID, &expense.Date, &expense.Category, &expense.Description, &expense.Amount, &expense.CreatedAt, &expense.UpdatedAt); err != nil {
 			return nil, err
 		}
 		expenses = append(expenses, &expense)
@@ -65,8 +71,8 @@ func (r *expenseRepository) LoadAll() ([]*models.Expense, error) {
 }
 
 func (r *expenseRepository) Update(expense *models.Expense) error {
-	query := `UPDATE expense SET date = $1, description = $2, amount = $3, updated_at = NOW() WHERE id = $4 RETURNING updated_at`
-	err := r.db.QueryRow(query, expense.Date, expense.Description, expense.Amount, expense.ID).Scan(&expense.UpdatedAt)
+	query := `UPDATE expense SET date = $1, category = $2, description = $3, amount = $4, updated_at = NOW() WHERE id = $4 RETURNING updated_at`
+	err := r.db.QueryRow(query, expense.Date, expense.Category, expense.Description, expense.Amount, expense.ID).Scan(&expense.UpdatedAt)
 	return err
 }
 

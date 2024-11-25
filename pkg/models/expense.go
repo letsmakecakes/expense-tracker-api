@@ -4,6 +4,7 @@ import "time"
 
 type Expense struct {
 	ID          int       `json:"id"`
+	Category    string    `json:"category"`
 	Date        string    `json:"date"`
 	Description string    `json:"description"`
 	Amount      int       `json:"amount"`
