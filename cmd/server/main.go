@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"expensetrackerapi/config"
 	"expensetrackerapi/internal/db"
@@ -34,7 +35,12 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Could not connect to the database: %v", err)
 	}
-	defer database.Close()
+	defer func(database *sql.DB) {
+		err := database.Close()
+		if err != nil {
+			log.Errorf("Error closing database connection: %v", err)
+		}
+	}(database)
 	logger.Info("Database connection initialized")
 
 	// Set Gin mode
