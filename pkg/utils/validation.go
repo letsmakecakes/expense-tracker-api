@@ -8,13 +8,13 @@ import (
 
 func ValidateExpense(expense *models.Expense) error {
 	if strings.TrimSpace(expense.Date) == "" {
-		return errors.New("Date is required")
+		return errors.New("date is required")
 	}
 	if strings.TrimSpace(expense.Description) == "" {
-		return errors.New("Description is required")
+		return errors.New("description is required")
 	}
 	if expense.Amount == 0 {
-		return errors.New("Amount is required")
+		return errors.New("amount is required")
 	}
 
 	return nil
@@ -22,10 +22,10 @@ func ValidateExpense(expense *models.Expense) error {
 
 func ValidateCredential(credential *models.Credential) error {
 	if strings.TrimSpace(credential.Username) == "" {
-		return errors.New("Username is required")
+		return errors.New("username is required")
 	}
 	if strings.TrimSpace(credential.Password) == "" {
-		return errors.New("Password is required")
+		return errors.New("password is required")
 	}
 
 	return nil
