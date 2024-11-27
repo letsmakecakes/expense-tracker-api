@@ -7,7 +7,7 @@ type Expense struct {
 	Category    string    `json:"category"`
 	Date        string    `json:"date"`
 	Description string    `json:"description"`
-	Amount      int       `json:"amount"`
+	Amount      float32   `json:"amount"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
