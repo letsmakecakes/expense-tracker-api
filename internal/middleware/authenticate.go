@@ -10,18 +10,6 @@ import (
 // AuthMiddleware Middleware to authenticate JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Define routes to skip authentication
-		skippedRoutes := map[string]string{
-			"/signup": http.MethodPost,
-			"/login":  http.MethodPost,
-		}
-
-		// Skip authentication for specific routes
-		if method, exists := skippedRoutes[c.FullPath()]; exists && c.Request.Method == method {
-			c.Next()
-			return
-		}
-
 		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
