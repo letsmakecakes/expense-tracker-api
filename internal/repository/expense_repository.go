@@ -71,7 +71,7 @@ func (r *expenseRepository) LoadAll() ([]*models.Expense, error) {
 }
 
 func (r *expenseRepository) Update(expense *models.Expense) error {
-	query := `UPDATE expense SET date = $1, category = $2, description = $3, amount = $4, updated_at = NOW() WHERE id = $4 RETURNING updated_at`
+	query := `UPDATE expense SET date = $1, category = $2, description = $3, amount = $4, updated_at = NOW() WHERE id = $5 RETURNING updated_at`
 	err := r.db.QueryRow(query, expense.Date, expense.Category, expense.Description, expense.Amount, expense.ID).Scan(&expense.UpdatedAt)
 	return err
 }
