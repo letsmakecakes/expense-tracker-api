@@ -28,11 +28,21 @@ func (c *ExpenseController) AddExpense(ctx *gin.Context) {
 		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid request payload")
 	}
 
+	log.Infof("received data to add expense: %+v", expense)
+
 	if err := utils.ValidateExpense(&expense); err != nil {
 		log.Errorf("error validating expense: %v", err)
-		utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to add expense")
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Invalid request payload: "+error.Error(err))
 		return
 	}
+
+	err := c.Service.AddExpense(&expense)
+	if err != nil {
+		log.Errorf("error adding expense: %v", err)
+		utils.RespondWithError(ctx, http.StatusInternalServerError, "Failed to add expense")
+	}
+
+	log.Infof("expense added for ID %d", expense.ID)
 
 	utils.RespondWithJSON(ctx, http.StatusCreated, expense)
 }
@@ -46,6 +56,8 @@ func (c *ExpenseController) GetExpense(ctx *gin.Context) {
 		return
 	}
 
+	log.Infof("received ID %d to retrieve expense", id)
+
 	expense, err := c.Service.GetExpenseByID(id)
 	if err != nil {
 		log.Errorf("error getting blog: %v", err)
@@ -56,6 +68,8 @@ func (c *ExpenseController) GetExpense(ctx *gin.Context) {
 		}
 		return
 	}
+
+	log.Infof("retrieved expense for ID %d", id)
 
 	utils.RespondWithJSON(ctx, http.StatusOK, expense)
 }
@@ -87,6 +101,8 @@ func (c *ExpenseController) UpdateExpense(ctx *gin.Context) {
 		return
 	}
 
+	log.Info("received data to update expense: %+v", expense)
+
 	if err := utils.ValidateExpense(&expense); err != nil {
 		log.Errorf("error validating expense: %v", err)
 		utils.RespondWithError(ctx, http.StatusBadRequest, err.Error())
@@ -111,6 +127,8 @@ func (c *ExpenseController) UpdateExpense(ctx *gin.Context) {
 		return
 	}
 
+	log.Infof("expense updated for ID %d", expense.ID)
+
 	utils.RespondWithJSON(ctx, http.StatusOK, updatedExpense)
 }
 
@@ -123,6 +141,8 @@ func (c *ExpenseController) DeleteExpense(ctx *gin.Context) {
 		return
 	}
 
+	log.Infof("received ID %d to delete expense", id)
+
 	if err := c.Service.DeleteExpense(id); err != nil {
 		log.Errorf("error deleting blog: %v", err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -132,6 +152,8 @@ func (c *ExpenseController) DeleteExpense(ctx *gin.Context) {
 		}
 		return
 	}
+
+	log.Infof("deleted expense ID %d", id)
 
 	ctx.Status(http.StatusNoContent)
 }
