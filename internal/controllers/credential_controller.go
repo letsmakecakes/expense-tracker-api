@@ -22,7 +22,7 @@ func NewCredentialController(service services.CredentialService) *CredentialCont
 	return &CredentialController{service}
 }
 
-// CreateCredential handles POST /user/signup
+// CreateCredential handles POST /signup
 func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	var credential models.Credential
 	if err := ctx.ShouldBindJSON(&credential); err != nil {
@@ -39,20 +39,11 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	}
 
 	// Check if the user already exists
-	//existingCred, err := c.Service.GetCredentialByUsername(credential.ID)
-	//if err != nil {
-	//	log.Errorf("error getting credential: %v", err)
-	//	if !errors.Is(err, sql.ErrNoRows) {
-	//		utils.RespondWithError(ctx, http.StatusInternalServerError, err.Error())
-	//		return
-	//	}
-	//}
-	//
-	//if existingCred != nil {
-	//	log.Errorf("credential already exists")
-	//	utils.RespondWithError(ctx, http.StatusBadRequest, "Credential already exists")
-	//	return
-	//}
+	_, err := c.Service.GetCredentialByUsername(credential.Username)
+	if err == nil {
+		utils.RespondWithError(ctx, http.StatusBadRequest, "Credential already exists")
+		return
+	}
 
 	hashedPassword, err := utils.HashPassword(credential.Password)
 	if err != nil {
@@ -72,7 +63,7 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	utils.RespondWithJSON(ctx, http.StatusCreated, credential)
 }
 
-// GetCredential handles GET /user/login
+// GetCredential handles POST /login
 func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	var credential models.Credential
 
