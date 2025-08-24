@@ -23,7 +23,9 @@ The **Expense Tracker API** is a RESTful service built with the Gin framework in
 4. [Environment Variables](#environment-variables)
 5. [Run Locally](#run-locally)
 6. [Testing with cURL](#testing-with-curl)
-7. [License](#license)
+7. [Security](#security)
+8. [Contributing](#contributing)
+9. [License](#license)
 
 ---
 
@@ -40,7 +42,7 @@ The **Expense Tracker API** is a RESTful service built with the Gin framework in
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/username/expense-tracker-api.git
+   git clone https://github.com/letsmakecakes/expense-tracker-api.git
    cd expense-tracker-api
    ```
 
@@ -49,13 +51,21 @@ The **Expense Tracker API** is a RESTful service built with the Gin framework in
    go mod download
    ```
 
-3. **Set up the database:**
-   - Create a database for the project.
-   - Update the connection string in the `config.yml` file or as an environment variable.
-
-4. **Run the server:**
+3. **Set up environment variables:**
    ```bash
-   go run main.go
+   cp .env.example .env
+   ```
+   Then edit `.env` and update the following variables:
+   - `DATABASE_URL`: Your database connection string
+   - `JWT_SECRET`: A secure secret key for JWT token signing
+
+4. **Set up the database:**
+   - Create a database for the project
+   - Run the migrations from the `migrations/` directory
+
+5. **Run the server:**
+   ```bash
+   go run cmd/server/main.go
    ```
 
 ---
@@ -81,11 +91,14 @@ The **Expense Tracker API** is a RESTful service built with the Gin framework in
 
 ## Environment Variables
 
-| Variable       | Description                       |
-|----------------|-----------------------------------|
-| `PORT`         | Server listening port (default: 8080) |
-| `DATABASE_URL` | Connection string for the database |
-| `JWT_SECRET`   | Secret key for signing JWT tokens |
+| Variable       | Description                       | Required | Default |
+|----------------|-----------------------------------|----------|---------|
+| `PORT`         | Server listening port | No | 8080 |
+| `DATABASE_URL` | Connection string for the database | Yes | - |
+| `JWT_SECRET`   | Secret key for signing JWT tokens | Yes | - |
+| `ENVIRONMENT`  | Application environment (development/production) | No | development |
+
+**Important:** Never commit your `.env` file to version control. Use `.env.example` as a template and create your own `.env` file with your actual configuration values.
 
 ---
 
@@ -130,6 +143,38 @@ curl -X POST http://localhost:8080/expenseAPI/expense \
 curl -X GET http://localhost:8080/expenseAPI/expense \
 -H "Authorization: Bearer <JWT_TOKEN>"
 ```
+
+---
+
+## Security
+
+This application handles sensitive user data and implements several security measures:
+
+- **Password Hashing**: User passwords are hashed using bcrypt before storage
+- **JWT Authentication**: Secure token-based authentication for API access
+- **Input Validation**: All user inputs are validated to prevent malicious data
+- **Environment Variables**: Sensitive configuration is managed via environment variables
+
+### Security Best Practices
+
+- Always use a strong, unique `JWT_SECRET` in production
+- Use HTTPS in production environments
+- Regularly update dependencies to patch security vulnerabilities
+- Never commit sensitive data like passwords or API keys to version control
+
+---
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+
+### Quick Start for Contributors
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test your changes
+5. Submit a pull request
 
 ---
 

@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"errors"
+	"expensetrackerapi/config"
 	"expensetrackerapi/internal/services"
 	"expensetrackerapi/pkg/jwt"
 	"expensetrackerapi/pkg/models"
@@ -16,10 +17,11 @@ import (
 
 type CredentialController struct {
 	Service services.CredentialService
+	Config  *config.Config
 }
 
-func NewCredentialController(service services.CredentialService) *CredentialController {
-	return &CredentialController{service}
+func NewCredentialController(service services.CredentialService, cfg *config.Config) *CredentialController {
+	return &CredentialController{service, cfg}
 }
 
 // CreateCredential handles POST /signup
@@ -108,7 +110,7 @@ func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	}
 
 	// Generate a JWT token
-	token, err := jwt.GenerateToken(existingCredential.Username)
+	token, err := jwt.GenerateToken(existingCredential.Username, c.Config.JWTSecret)
 	if err != nil {
 		log.Errorf("error generating JWT token: %v", err)
 		utils.RespondWithError(ctx, http.StatusInternalServerError, "Could not generate token")
@@ -116,7 +118,7 @@ func (c *CredentialController) GetCredential(ctx *gin.Context) {
 	}
 
 	// Option 1: Set the JWT as an HTTP-only cookie (if you want cookie-based authentication)
-	ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
+	ctx.SetCookie("token", token, 3600, "/", "", false, true)
 
 	// Option 2: Set the JWT as a response header (if token-based auth is preferred)
 	ctx.Header("Authorization", "Bearer "+token)

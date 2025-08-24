@@ -8,7 +8,7 @@ import (
 )
 
 // AuthMiddleware Middleware to authenticate JWT tokens
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -22,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := authHeader[7:]
 
 		// Parse and validate the token
-		claims, err := jwt.ValidateToken(tokenString)
+		claims, err := jwt.ValidateToken(tokenString, jwtSecret)
 		if err != nil {
 			utils.RespondWithError(c, http.StatusUnauthorized, "Invalid or expired token")
 			c.Abort()

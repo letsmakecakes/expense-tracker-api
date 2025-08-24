@@ -55,7 +55,7 @@ func main() {
 	router.Use(middleware.GinLogrus(logger), gin.Recovery())
 
 	// Setup routes
-	routes.SetupRoutes(router, database)
+	routes.SetupRoutes(router, database, cfg)
 
 	// Start the server with graceful shutdown
 	port := cfg.Port

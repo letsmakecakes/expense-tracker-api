@@ -14,11 +14,8 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// Secret key (loaded from environment or config)
-var jwtKey = []byte("your_secret_key")
-
 // GenerateToken generates a JWT for a valid user
-func GenerateToken(username string) (string, error) {
+func GenerateToken(username string, jwtSecret string) (string, error) {
 	expirationTime := time.Now().Add(12 * time.Hour) // Set token expiration time to 12 hours
 
 	// Create the JWT claims, which includes the username and expiry time
@@ -33,7 +30,7 @@ func GenerateToken(username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign the token with the secret key
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		return "", err
 	}
@@ -42,7 +39,7 @@ func GenerateToken(username string) (string, error) {
 }
 
 // ValidateToken validates the incoming JWT and returns the claims if valid
-func ValidateToken(tokenString string) (*Claims, error) {
+func ValidateToken(tokenString string, jwtSecret string) (*Claims, error) {
 	claims := &Claims{}
 
 	// Parse and validate the token
@@ -51,7 +48,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return jwtKey, nil
+		return []byte(jwtSecret), nil
 	})
 
 	if err != nil {

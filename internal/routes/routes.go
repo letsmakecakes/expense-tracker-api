@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	"expensetrackerapi/config"
 	"expensetrackerapi/internal/controllers"
 	"expensetrackerapi/internal/middleware"
 	"expensetrackerapi/internal/repository"
@@ -10,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.Engine, db *sql.DB) {
+func SetupRoutes(router *gin.Engine, db *sql.DB, cfg *config.Config) {
 	// Disable redirection for trailing slashes and fixed paths
 	router.RedirectTrailingSlash = false
 	router.RedirectFixedPath = false
@@ -22,7 +23,7 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 
 	credentialRepo := repository.NewCredentialRepository(db)
 	credentialService := services.NewCredentialService(credentialRepo)
-	credentialController := controllers.NewCredentialController(credentialService)
+	credentialController := controllers.NewCredentialController(credentialService, cfg)
 
 	// Public routes
 	router.POST("/signup", credentialController.CreateCredential)
@@ -30,7 +31,7 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 
 	// Protected routes under /expenseAPI
 	expenseAPI := router.Group("/expenseAPI")
-	expenseAPI.Use(middleware.AuthMiddleware()) // Apply the AuthMiddleware here
+	expenseAPI.Use(middleware.AuthMiddleware(cfg.JWTSecret)) // Apply the AuthMiddleware here
 	{
 		// expense := expenseAPI.Group("/expense")
 		{

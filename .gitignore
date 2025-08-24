@@ -101,6 +101,10 @@ fabric.properties
 go.work
 go.work.sum
 
+# Build artifacts
+server
+expense-tracker-api
+
 # env file
 .env
 

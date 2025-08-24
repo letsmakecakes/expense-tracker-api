@@ -10,6 +10,7 @@ type Config struct {
 	Port        string
 	DatabaseURL string
 	Environment string
+	JWTSecret   string
 }
 
 // LoadConfig initializes and loads the configuration from file and environment variables.
@@ -29,6 +30,7 @@ func LoadConfig() (*Config, error) {
 		Port:        viper.GetString("PORT"),
 		DatabaseURL: viper.GetString("DATABASE_URL"),
 		Environment: viper.GetString("ENVIRONMENT"),
+		JWTSecret:   viper.GetString("JWT_SECRET"),
 	}, nil
 }
 
