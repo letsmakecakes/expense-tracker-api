@@ -19,19 +19,28 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("error setting up Viper: %w", err)
 	}
 
-	if err := readConfigFile(); err != nil {
-		return nil, fmt.Errorf("error loading config file: %w", err)
-	}
+	// Try to read config file, but don't fail if it doesn't exist
+	_ = readConfigFile() // Ignore error - environment variables will be used instead
 
 	setDefaults()
 	viper.AutomaticEnv()
 
-	return &Config{
+	config := &Config{
 		Port:        viper.GetString("PORT"),
 		DatabaseURL: viper.GetString("DATABASE_URL"),
 		Environment: viper.GetString("ENVIRONMENT"),
 		JWTSecret:   viper.GetString("JWT_SECRET"),
-	}, nil
+	}
+
+	// Validate required configuration
+	if config.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET environment variable is required")
+	}
+	if config.DatabaseURL == "" {
+		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
+	}
+
+	return config, nil
 }
 
 // setupViper configures Viper with the paths and filename of the configuration file.
